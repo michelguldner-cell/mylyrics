@@ -59,7 +59,7 @@ export async function mount(ctx) {
       h('label', { class: 'row', style: 'color:var(--fg);font-size:15px' }, chordsChk, h('span', {}, 'Afficher les accords par défaut'))),
     h('h2', {}, 'Google Drive'),
     h('div', { class: 'card stack' },
-      h('label', {}, 'Client ID OAuth (voir README)'), clientId,
+      h('label', {}, 'Client ID OAuth (pré-rempli, à ne changer que si vous créez votre propre projet Google Cloud)'), clientId,
       status, connectBtn, syncBtn,
       h('div', { class: 'hint' }, 'Le fichier « MyLyrics/mylyrics.json » dans votre Drive contient toutes les chansons et setlists. Synchronisez chaque appareil avant et après vos modifications. À chaque synchronisation qui change quelque chose, une copie datée est déposée dans « MyLyrics/Historique » (30 dernières conservées) ; ces copies se restaurent avec « Restaurer une sauvegarde ».')),
     h('h2', {}, 'Sauvegarde locale'),

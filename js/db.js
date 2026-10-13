@@ -83,13 +83,16 @@ export async function deleteSetlist(id) {
 }
 
 // ---- Réglages ----
-const DEFAULTS = { fontSize: 18, sectionSize: 12, chordSize: 13, showChords: true, driveClientId: '', driveFileId: '', lastSyncAt: 0 };
+// Client ID OAuth du projet Google Cloud « MyLyrics » (identifiant public : seules les URL de l'app peuvent l'utiliser).
+export const DEFAULT_DRIVE_CLIENT_ID = '269156092008-f9flp7pk9gdu9hfkv2tib7mrnghlvqsg.apps.googleusercontent.com';
+const DEFAULTS = { fontSize: 18, sectionSize: 12, chordSize: 13, showChords: true, driveClientId: DEFAULT_DRIVE_CLIENT_ID, driveFileId: '', lastSyncAt: 0 };
 let settingsCache = null;
 export async function getSettings() {
   if (settingsCache) return settingsCache;
   const rows = await db.getAll('settings');
   settingsCache = { ...DEFAULTS };
   rows.forEach((r) => { settingsCache[r.key] = r.value; });
+  if (!settingsCache.driveClientId) settingsCache.driveClientId = DEFAULT_DRIVE_CLIENT_ID;
   return settingsCache;
 }
 export async function setSetting(key, value) {

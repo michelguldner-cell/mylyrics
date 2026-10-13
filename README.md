@@ -59,6 +59,8 @@ Les données sont stockées dans `MyLyrics/mylyrics.json` sur votre Drive. Chaqu
 
 À chaque synchronisation qui change quelque chose, une copie datée `mylyrics-AAAA-MM-JJ_HH-MM.json` est déposée dans `MyLyrics/Historique` (les 30 plus récentes sont conservées). Pour revenir en arrière : télécharger la copie voulue depuis Drive, puis Réglages → Restaurer une sauvegarde.
 
+Le Client ID du projet Google Cloud « MyLyrics » (compte de Michel) est pré-rempli dans l'app : il suffit de cliquer sur « Se connecter à Google Drive » dans Réglages. Les étapes ci-dessous ne servent que pour recréer un Client ID sur un autre compte Google.
+
 ### Créer le Client ID (une seule fois, gratuit)
 
 1. Aller sur https://console.cloud.google.com/ et créer un projet (ex. « MyLyrics »).
