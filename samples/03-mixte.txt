@@ -1,0 +1,16 @@
+{title: Chanson mixte}
+{artist: Trio Test}
+{comment: Capo 2}
+
+Couplet:
+[D]Partie inline [A]ici
+Bm           G
+Et partie au-dessus là
+
+{soc}
+[D]Refrain en [A]directive Chord[Bm]Pro [G]
+{eoc}
+
+Pont:
+Juste des paroles sans accords
+Sur deux lignes

@@ -1,0 +1,17 @@
+Chanson d'exemple (au-dessus)
+Artiste Deux
+
+Couplet 1:
+C            G           Am          F
+Les accords sont écrits sur la ligne au-dessus
+C            G                 F     C
+Comme dans certains fichiers OnSong ou texte
+
+Refrain:
+F        G        C      Am
+Et le refrain arrive ici
+F        G        C
+Avec ses accords alignés
+
+Solo:
+C  G  Am  F  x2

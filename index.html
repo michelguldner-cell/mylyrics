@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>MyLyrics</title>
+  <meta name="description" content="Paroles, accords et setlists pour la scène. Hors ligne, sans abonnement.">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="MyLyrics">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header id="topbar" class="topbar">
+    <button id="back" class="icon-btn" aria-label="Retour" hidden>‹</button>
+    <h1 id="title">MyLyrics</h1>
+    <div id="actions" class="actions"></div>
+  </header>
+
+  <main id="view" class="view"></main>
+
+  <nav id="tabs" class="tabs">
+    <a href="#/" data-tab="library">♪<span>Bibliothèque</span></a>
+    <a href="#/setlists" data-tab="setlists">☰<span>Setlists</span></a>
+    <a href="#/settings" data-tab="settings">⚙<span>Réglages</span></a>
+  </nav>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

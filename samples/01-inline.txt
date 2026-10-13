@@ -1,0 +1,21 @@
+Chanson d'exemple (inline)
+Artiste Exemple
+Key: G
+
+Intro:
+G   D   Em   C
+
+Couplet 1:
+[G]Voici des paroles [D]avec des accords
+[Em]Écrits directement [C]dans le texte
+[G]Chaque crochet [D]marque le change[Em]ment
+[C]C'est le format d'On[G]Song
+
+Refrain:
+[C]Et voilà le re[G]frain
+[D]Qui revient tou[Em]jours
+[C]Masquer les accords [G]un seul [D]bouton [G]
+
+Couplet 2:
+[G]Une deuxième strophe [D]pour la forme
+[Em]Avec un accord final [C]seul [G][D][Em]
