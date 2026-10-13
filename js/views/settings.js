@@ -53,7 +53,8 @@ export async function mount(ctx) {
   ctx.el().append(
     h('h2', {}, 'Affichage'),
     h('div', { class: 'card stack' },
-      h('label', {}, 'Taille du texte en mode concert'), sizeRow,
+      h('label', {}, 'Taille du texte par défaut'), sizeRow,
+      h('div', { class: 'hint' }, 'En mode concert, A− / A+ règle et mémorise la taille de la chanson affichée. Cette valeur sert aux chansons sans réglage propre.'),
       h('label', { class: 'row', style: 'color:var(--fg);font-size:15px' }, chordsChk, h('span', {}, 'Afficher les accords par défaut'))),
     h('h2', {}, 'Google Drive'),
     h('div', { class: 'card stack' },

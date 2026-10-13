@@ -43,6 +43,7 @@ export async function mount(ctx, { id }) {
     h('div', { class: 'row' }, title, artist),
     body,
     h('div', { class: 'hint', html: 'Format : une ligne finissant par <code>:</code> = titre de section (<code>Refrain:</code>). Accords entre crochets : <code>[G]Je chante [D]ici</code>. Une ligne d’accords seuls (<code>G D Em C</code>) est reconnue aussi.' }),
+    song.fontSize ? h('button', { class: 'btn block', onclick: async () => { delete song.fontSize; await saveSong(song); toast('Taille par défaut rétablie'); } }, `Taille du texte : ${song.fontSize} px — revenir à la taille par défaut`) : null,
     h('button', { class: 'btn danger block', onclick: async () => {
       if (!(await confirmDialog(`Supprimer « ${song.title} » ?`))) return;
       await deleteSong(song.id); toast('Supprimée'); ctx.navigate('#/');

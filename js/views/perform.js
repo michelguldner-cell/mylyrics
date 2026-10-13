@@ -1,6 +1,6 @@
 // Mode concert : plein écran noir, navigation entre chansons, accords on/off, taille de police, wake lock.
 import { h, toast } from '../ui.js';
-import { getSong, getSetlist, listSongs, getSettings, setSetting } from '../db.js';
+import { getSong, getSetlist, listSongs, getSettings, setSetting, saveSong } from '../db.js';
 import { renderSongHTML } from '../render.js';
 
 let wakeLock = null;
@@ -89,10 +89,20 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     else document.documentElement.requestFullscreen().catch(() => {});
   }
-  function setSize(px) {
-    fontSize = Math.min(60, Math.max(12, px));
+  // Taille de police : propre à chaque chanson (mémorisée dans la chanson), sinon valeur par défaut des Réglages.
+  let sizeTimer = null;
+  function applySize() {
+    const s = songs[i];
+    fontSize = s.fontSize || settings.fontSize;
     document.documentElement.style.setProperty('--song-size', fontSize + 'px');
-    setSetting('fontSize', fontSize);
+  }
+  function setSize(px) {
+    const s = songs[i];
+    s.fontSize = Math.min(60, Math.max(12, px));
+    applySize();
+    toast(`${fontSize} px pour « ${s.title} »`, 1200);
+    clearTimeout(sizeTimer);
+    sizeTimer = setTimeout(() => saveSong(s), 600); // regroupe les appuis rapides
   }
   function applyChords() {
     songEl.classList.toggle('nochords', !showChords);
@@ -111,6 +121,7 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
     meta.textContent = s.artist || '';
     meta.hidden = !s.artist;
     songEl.innerHTML = renderSongHTML(s.body);
+    applySize();
     applyChords();
     content.scrollTop = 0;
     prev.disabled = i === 0; next.disabled = i === songs.length - 1;
@@ -126,7 +137,6 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
     );
     drawer.hidden = false;
   }
-  setSize(fontSize);
   show();
   if (!sessionStorage.getItem('mylyrics.hintImmersive')) {
     sessionStorage.setItem('mylyrics.hintImmersive', '1');
