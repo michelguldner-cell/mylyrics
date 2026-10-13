@@ -1,0 +1,21 @@
+{
+  "_comment": "Corrections appliquées par onsong-import.mjs (option --fixes). Les ID sont ceux d'OnSong. Les chansons supprimées deviennent des tombales pour se propager aux appareils déjà restaurés.",
+  "delete": {
+    "86512F0A-35AB-4BB6-9A74-F30E52C20B4B": "Don't Cry (doublon)",
+    "A570CD28-D7A6-441F-88BE-B9EBFF227DB9": "Big Me - Foo Fighter (doublon sans sections)",
+    "4DD59311-E5AD-490E-AD81-9A25CD0E6190": "Ederly Woman (doublon sans sections)",
+    "8582FDAD-4BF9-46DE-B07C-163B4A218282": "Capo 1 (doublon d'Ederly Woman)",
+    "1DB9918E-BF51-44C9-884F-DD321E5BDD34": "Under the Bridge (doublon, non utilisé en setlist)",
+    "EFB43B69-254E-44B9-9857-E6B39B9FB374": "Creep Radiohead (doublon sans sections)"
+  },
+  "artists": {
+    "4B9F8F63-AAE2-4031-82FD-2286649F078B": "Guns N' Roses",
+    "105C712D-B01D-4840-AD37-48B9168EAEB7": "Red Hot Chili Peppers",
+    "2E342BEA-4C44-4A86-B9D6-8ED4B17A560A": "Stone Temple Pilots",
+    "D38260A7-8BAE-44DF-AE9F-FE34709A4158": "Stone Temple Pilots",
+    "1A53E78B-3872-439A-90EC-3D9F7D77D643": "Jean-Jacques Goldman"
+  },
+  "titles": {
+    "105C712D-B01D-4840-AD37-48B9168EAEB7": "Under the Bridge"
+  }
+}

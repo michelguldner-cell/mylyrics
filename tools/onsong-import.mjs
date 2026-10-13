@@ -2,8 +2,10 @@
 // Convertit une sauvegarde OnSong (fichier .backup = ZIP contenant OnSong.sqlite3)
 // en fichier de sauvegarde MyLyrics (JSON) à restaurer via Réglages → Restaurer une sauvegarde.
 //
-// Usage : node tools/onsong-import.mjs OnSong.backup [sortie.json]
+// Usage : node tools/onsong-import.mjs OnSong.backup [sortie.json] [--fixes tools/onsong-fixes.json]
 // Nécessite Node 22.5+ (module node:sqlite).
+// --fixes : fichier JSON { delete: {id: raison}, artists: {id: artiste}, titles: {id: titre} } (ID OnSong).
+// Les chansons répétées dans une même setlist sont dédoublonnées.
 
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -12,8 +14,13 @@ import { inflateRawSync } from 'node:zlib';
 import { DatabaseSync } from 'node:sqlite';
 import { normalizeImport, isSectionLine } from '../js/parser.js';
 
-const [,, input, output = 'mylyrics-depuis-onsong.json'] = process.argv;
-if (!input) { console.error('Usage : node tools/onsong-import.mjs OnSong.backup [sortie.json]'); process.exit(1); }
+const argv = process.argv.slice(2);
+const fi = argv.indexOf('--fixes');
+const fixes = fi >= 0 ? JSON.parse(readFileSync(argv[fi + 1], 'utf8')) : {};
+if (fi >= 0) argv.splice(fi, 2);
+const [input, output = 'mylyrics-depuis-onsong.json'] = argv;
+if (!input) { console.error('Usage : node tools/onsong-import.mjs OnSong.backup [sortie.json] [--fixes fixes.json]'); process.exit(1); }
+const fixDelete = fixes.delete || {}, fixArtists = fixes.artists || {}, fixTitles = fixes.titles || {};
 
 // --- Lecture minimale d'un ZIP : extrait OnSong.sqlite3 ---
 function extractFromZip(buf, wanted) {
@@ -85,8 +92,9 @@ for (const r of db.prepare('SELECT ID, title, byline, content FROM Song').all())
     lines.shift();
     if (byline && lines[0] !== undefined && lines[0].trim() === byline) lines.shift();
   }
+  if (fixDelete[r.ID]) { songs.push({ id, title: dbTitle, artist: '', body: '', updatedAt: now, deleted: true }); continue; }
   const { title, artist, body } = normalizeImport('\n' + lines.join('\n'), dbTitle);
-  songs.push({ id, title: dbTitle || title, artist: byline || artist, body, updatedAt: now, deleted: false });
+  songs.push({ id, title: fixTitles[r.ID] || dbTitle || title, artist: fixArtists[r.ID] ?? (byline || artist), body, updatedAt: now, deleted: false });
   songIds.add(id);
 }
 
@@ -94,7 +102,7 @@ const setlists = [];
 for (const s of db.prepare('SELECT ID, title, archived FROM SongSet').all()) {
   if (SKIP_SETS.has(s.ID)) continue;
   const items = db.prepare('SELECT songID FROM SongSetItem WHERE setID = ? ORDER BY orderIndex').all(s.ID);
-  const songIdsInSet = items.map((i) => 'onsong-' + i.songID.toLowerCase()).filter((id) => songIds.has(id));
+  const songIdsInSet = [...new Set(items.map((i) => 'onsong-' + i.songID.toLowerCase()).filter((id) => songIds.has(id)))];
   if (!songIdsInSet.length) continue;
   setlists.push({ id: 'onsong-set-' + s.ID.toLowerCase(), name: s.title, songIds: songIdsInSet, updatedAt: now, deleted: false });
 }
@@ -102,5 +110,5 @@ db.close();
 rmSync(tmp, { recursive: true, force: true });
 
 writeFileSync(output, JSON.stringify({ app: 'mylyrics', version: 1, exportedAt: now, songs, setlists }, null, 1));
-console.log(`${songs.length} chansons, ${setlists.length} setlists → ${output}`);
+console.log(`${songs.filter((s) => !s.deleted).length} chansons (${songs.filter((s) => s.deleted).length} supprimées), ${setlists.length} setlists → ${output}`);
 for (const sl of setlists) console.log(`  • ${sl.name} (${sl.songIds.length})`);
