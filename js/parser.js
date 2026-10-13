@@ -37,9 +37,15 @@ export function isMetaLine(line) {
   return !!m && META_KEYS.includes(m[1].trim().toLowerCase());
 }
 
+// Traduit les en-têtes anglais usuels (Verse 1 → Couplet 1) ; le texte stocké n'est pas modifié.
+const LABELS = [[/^pre-?chorus/i, 'Pré-refrain'], [/^chorus/i, 'Refrain'], [/^verse/i, 'Couplet'], [/^bridge/i, 'Pont'],
+  [/^interlude/i, 'Interlude'], [/^instrumental/i, 'Instrumental'], [/^ending/i, 'Fin'], [/^tag/i, 'Coda']];
 function sectionLabel(name) {
-  const map = { chorus: 'Refrain', verse: 'Couplet', bridge: 'Pont', intro: 'Intro', outro: 'Outro', tab: 'Tab' };
-  return map[name] || name;
+  for (const [re, fr] of LABELS) {
+    const m = name.match(re);
+    if (m) return fr + name.slice(m[0].length);
+  }
+  return name;
 }
 
 // Découpe "[G]Je chante [D]ici" en parts [{chord, text}].

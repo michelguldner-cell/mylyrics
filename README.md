@@ -34,6 +34,16 @@ Bibliothèque → **Importer** → sélectionner un ou plusieurs fichiers `.txt`
 
 Pour exporter depuis OnSong : Menu → Exporter / Partager → format OnSong ou ChordPro (texte), puis envoyer les fichiers sur l'appareil (AirDrop, Fichiers, Drive…).
 
+### Récupérer une sauvegarde OnSong complète (chansons + setlists)
+
+Dans OnSong : Menu → Sauvegardes → créer une sauvegarde, puis l'envoyer sur le Mac (fichier `OnSong.backup`). Ensuite, dans le dossier du projet :
+
+```bash
+node tools/onsong-import.mjs ~/Downloads/OnSong.backup mylyrics-depuis-onsong.json
+```
+
+Le fichier JSON produit se restaure dans l'app via **Réglages → Restaurer une sauvegarde** (sur chaque appareil, ou sur un seul puis synchronisation Drive). Les chansons gardent un identifiant stable : relancer l'import plus tard met à jour au lieu de dupliquer. Nécessite Node 22.5 ou plus.
+
 ## Mode concert
 
 - Écran noir, texte blanc, sections en jaune, accords en cyan.
