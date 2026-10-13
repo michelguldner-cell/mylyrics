@@ -9,12 +9,12 @@ export async function mount(ctx) {
   const s = await getSettings();
 
   // --- Affichage ---
-  const sizeVal = h('span', {}, s.fontSize + ' px');
-  const sizeRow = h('div', { class: 'row' },
-    h('button', { class: 'btn', onclick: () => setSize(s.fontSize - 2) }, 'A−'),
-    sizeVal,
-    h('button', { class: 'btn', onclick: () => setSize(s.fontSize + 2) }, 'A+'));
-  function setSize(v) { s.fontSize = Math.min(60, Math.max(12, v)); sizeVal.textContent = s.fontSize + ' px'; setSetting('fontSize', s.fontSize); document.documentElement.style.setProperty('--song-size', s.fontSize + 'px'); }
+  function sizeRow(key, label) {
+    const val = h('span', { style: 'min-width:52px;text-align:center' }, s[key] + ' px');
+    const set = (v) => { s[key] = Math.min(72, Math.max(10, v)); val.textContent = s[key] + ' px'; setSetting(key, s[key]); };
+    return h('div', { class: 'row' }, h('span', { style: 'flex:1.4' }, label),
+      h('button', { class: 'btn', onclick: () => set(s[key] - 2) }, '−'), val, h('button', { class: 'btn', onclick: () => set(s[key] + 2) }, '+'));
+  }
   const chordsChk = h('input', { type: 'checkbox', checked: s.showChords, onchange: (e) => setSetting('showChords', e.target.checked) });
 
   // --- Google Drive ---
@@ -53,8 +53,9 @@ export async function mount(ctx) {
   ctx.el().append(
     h('h2', {}, 'Affichage'),
     h('div', { class: 'card stack' },
-      h('label', {}, 'Taille du texte par défaut'), sizeRow,
-      h('div', { class: 'hint' }, 'En mode concert, A− / A+ règle et mémorise la taille de la chanson affichée. Cette valeur sert aux chansons sans réglage propre.'),
+      h('label', {}, 'Tailles par défaut (mode concert)'),
+      sizeRow('fontSize', 'Texte'), sizeRow('sectionSize', 'Titres de section'), sizeRow('chordSize', 'Accords'),
+      h('div', { class: 'hint' }, 'En mode concert, le bouton « Aa » règle et mémorise ces trois tailles pour la chanson affichée. Les valeurs ci-dessus servent aux chansons sans réglage propre.'),
       h('label', { class: 'row', style: 'color:var(--fg);font-size:15px' }, chordsChk, h('span', {}, 'Afficher les accords par défaut'))),
     h('h2', {}, 'Google Drive'),
     h('div', { class: 'card stack' },

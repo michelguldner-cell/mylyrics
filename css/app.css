@@ -94,13 +94,13 @@ h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spa
 
 /* Rendu d'une chanson */
 .song { font-size: var(--song-size, 20px); line-height: 1.35; }
-.song .section { color: var(--section); font-weight: 700; margin: 1.1em 0 .3em; }
+.song .section { color: var(--section); font-weight: 700; font-size: var(--section-size, 1em); line-height: 1.3; margin: 1.1em 0 .3em; }
 .song .section:first-child { margin-top: 0; }
 .song .line { white-space: pre-wrap; word-break: break-word; margin: 0; }
 .song .line.blank { height: .7em; }
 .song .part { display: inline-block; vertical-align: bottom; white-space: pre; }
-.song .chord { display: block; color: var(--accent); font-weight: 700; font-size: .85em; line-height: 1.2; min-height: 1.2em; }
-.song .chordline { color: var(--accent); font-weight: 700; font-size: .9em; white-space: pre-wrap; }
+.song .chord { display: block; color: var(--accent); font-weight: 700; font-size: var(--chord-size, .85em); line-height: 1.2; min-height: 1.2em; }
+.song .chordline { color: var(--accent); font-weight: 700; font-size: var(--chord-size, .9em); white-space: pre-wrap; }
 .song .comment { color: var(--muted); font-style: italic; }
 .song .line.plain { display: none; }
 .song.nochords .chordline, .song.nochords .line.withchords, .song.nochords .section.chordsonly { display: none; }
@@ -130,6 +130,21 @@ h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spa
   padding: calc(var(--safe-t) + 8px) 0 var(--safe-b);
 }
 .perform .drawer li.current .t { color: var(--accent); }
+
+/* Panneau tailles (mode concert) */
+.perform .sizes {
+  position: absolute; right: 8px; top: calc(var(--safe-t) + 48px); z-index: 6;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 8px; min-width: 260px; font-size: 15px;
+}
+.perform .sizes .srow { display: flex; align-items: center; gap: 8px; }
+.perform .sizes .srow .lbl { flex: 1; }
+.perform .sizes .srow .val { width: 44px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+.perform .sizes .srow .lbl.sec { color: var(--section); }
+.perform .sizes .srow .lbl.chd { color: var(--accent); }
+.perform .sizes .btn { min-height: 36px; padding: 6px 12px; }
+.perform .sizes .btn.sq { width: 40px; padding: 0; }
+.perform .sizes .btn.on { border-color: var(--accent); color: var(--accent); }
 
 /* Toast */
 .toast {

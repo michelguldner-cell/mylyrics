@@ -9,7 +9,7 @@ import * as setlistEdit from './views/setlist-edit.js';
 import * as perform from './views/perform.js';
 import * as settings from './views/settings.js';
 
-export const APP_VERSION = '1.0.3';
+export const APP_VERSION = '1.0.4';
 
 const routes = [
   { re: /^\/?$/, view: library, tab: 'library' },
@@ -58,6 +58,8 @@ async function init() {
   if (handleOAuthReturn()) return; // la fonction redirige elle-même
   const s = await getSettings();
   document.documentElement.style.setProperty('--song-size', s.fontSize + 'px');
+  document.documentElement.style.setProperty('--section-size', s.sectionSize + 'px');
+  document.documentElement.style.setProperty('--chord-size', s.chordSize + 'px');
   window.addEventListener('hashchange', route);
   await route();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {

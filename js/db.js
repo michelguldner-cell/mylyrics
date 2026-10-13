@@ -83,7 +83,7 @@ export async function deleteSetlist(id) {
 }
 
 // ---- Réglages ----
-const DEFAULTS = { fontSize: 22, showChords: true, driveClientId: '', driveFileId: '', lastSyncAt: 0 };
+const DEFAULTS = { fontSize: 22, sectionSize: 22, chordSize: 19, showChords: true, driveClientId: '', driveFileId: '', lastSyncAt: 0 };
 let settingsCache = null;
 export async function getSettings() {
   if (settingsCache) return settingsCache;

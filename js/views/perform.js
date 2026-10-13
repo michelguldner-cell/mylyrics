@@ -37,8 +37,8 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
 
   const ttl = h('div', { class: 'ttl' });
   const chordsBtn = h('button', { class: 'icon-btn', 'aria-label': 'Accords', title: 'Accords', onclick: () => { showChords = !showChords; setSetting('showChords', showChords); applyChords(); } }, '♯');
-  const minus = h('button', { class: 'icon-btn', 'aria-label': 'Réduire', onclick: () => setSize(fontSize - 2) }, 'A−');
-  const plus = h('button', { class: 'icon-btn', 'aria-label': 'Agrandir', onclick: () => setSize(fontSize + 2) }, 'A+');
+  const sizesBtn = h('button', { class: 'icon-btn', 'aria-label': 'Tailles', onclick: toggleSizes }, 'Aa');
+  const sizes = h('div', { class: 'sizes', hidden: true });
   const prev = h('button', { class: 'icon-btn nav', 'aria-label': 'Précédente', onclick: () => go(i - 1) }, '‹');
   const next = h('button', { class: 'icon-btn nav', 'aria-label': 'Suivante', onclick: () => go(i + 1) }, '›');
   const listBtn = h('button', { class: 'icon-btn', 'aria-label': 'Liste', onclick: toggleDrawer }, '☰');
@@ -48,6 +48,7 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
   // Un tap sur le texte masque/affiche la barre (mode immersif)
   const content = h('div', { class: 'content', onclick: () => {
     if (!drawer.hidden) { drawer.hidden = true; return; }
+    if (!sizes.hidden) { sizes.hidden = true; return; }
     root.classList.toggle('immersive');
   } });
   const songEl = h('div', { class: 'song' });
@@ -57,8 +58,8 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
   const edgeL = h('div', { class: 'edge l', onclick: () => go(i - 1) });
   const edgeR = h('div', { class: 'edge r', onclick: () => go(i + 1) });
   const root = h('div', { class: 'perform' },
-    h('div', { class: 'bar' }, quit, ttl, songs.length > 1 ? prev : null, songs.length > 1 ? next : null, chordsBtn, minus, plus, canFs ? fsBtn : null, songs.length > 1 ? listBtn : null),
-    content, songs.length > 1 ? edgeL : null, songs.length > 1 ? edgeR : null, drawer);
+    h('div', { class: 'bar' }, quit, ttl, songs.length > 1 ? prev : null, songs.length > 1 ? next : null, chordsBtn, sizesBtn, canFs ? fsBtn : null, songs.length > 1 ? listBtn : null),
+    content, songs.length > 1 ? edgeL : null, songs.length > 1 ? edgeR : null, drawer, sizes);
   ctx.el().append(root);
 
   // Balayage horizontal
@@ -74,8 +75,8 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
     if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(i + 1); }
     else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); go(i - 1); }
     else if (e.key === 'Escape') ctx.navigate(backHash);
-    else if (e.key === '+') setSize(fontSize + 2);
-    else if (e.key === '-') setSize(fontSize - 2);
+    else if (e.key === '+') setSize('fontSize', 2);
+    else if (e.key === '-') setSize('fontSize', -2);
     else if (e.key.toLowerCase() === 'c') chordsBtn.click();
     else if (e.key.toLowerCase() === 'f') toggleFullscreen();
     else if (e.key.toLowerCase() === 'h') root.classList.toggle('immersive');
@@ -89,25 +90,50 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     else document.documentElement.requestFullscreen().catch(() => {});
   }
-  // Taille de police : propre à chaque chanson (mémorisée dans la chanson), sinon valeur par défaut des Réglages.
+  // Tailles (texte, titres de section, accords) : propres à chaque chanson, sinon valeurs par défaut des Réglages.
+  const SIZE_KEYS = [['fontSize', 'Texte', ''], ['sectionSize', 'Sections', 'sec'], ['chordSize', 'Accords', 'chd']];
+  const CSS_VAR = { fontSize: '--song-size', sectionSize: '--section-size', chordSize: '--chord-size' };
   let sizeTimer = null;
+  const sizeOf = (key) => songs[i][key] || settings[key];
   function applySize() {
-    const s = songs[i];
-    fontSize = s.fontSize || settings.fontSize;
-    document.documentElement.style.setProperty('--song-size', fontSize + 'px');
+    for (const [key] of SIZE_KEYS) document.documentElement.style.setProperty(CSS_VAR[key], sizeOf(key) + 'px');
+    fontSize = sizeOf('fontSize');
+    if (!sizes.hidden) renderSizes();
   }
-  function setSize(px) {
+  function setSize(key, delta) {
     const s = songs[i];
-    s.fontSize = Math.min(60, Math.max(12, px));
+    s[key] = Math.min(72, Math.max(10, sizeOf(key) + delta));
     applySize();
-    toast(`${fontSize} px pour « ${s.title} »`, 1200);
     clearTimeout(sizeTimer);
     sizeTimer = setTimeout(() => saveSong(s), 600); // regroupe les appuis rapides
+  }
+  function renderSizes() {
+    const s = songs[i];
+    const hasOverride = SIZE_KEYS.some(([k]) => s[k]);
+    sizes.replaceChildren(
+      ...SIZE_KEYS.map(([key, label, cls]) => h('div', { class: 'srow' },
+        h('span', { class: 'lbl ' + cls }, label),
+        h('button', { class: 'btn sq', 'aria-label': label + ' moins', onclick: () => setSize(key, -2) }, '−'),
+        h('span', { class: 'val' }, sizeOf(key)),
+        h('button', { class: 'btn sq', 'aria-label': label + ' plus', onclick: () => setSize(key, 2) }, '+'))),
+      h('div', { class: 'srow' },
+        h('span', { class: 'lbl' }, 'Accords'),
+        h('button', { class: 'btn' + (showChords ? ' on' : ''), onclick: () => chordsBtn.click() }, showChords ? 'Affichés' : 'Masqués')),
+      h('button', { class: 'btn', disabled: !hasOverride, onclick: () => {
+        SIZE_KEYS.forEach(([k]) => delete s[k]); applySize(); saveSong(s); toast('Tailles par défaut rétablies');
+      } }, 'Rétablir les tailles par défaut'),
+    );
+  }
+  function toggleSizes() {
+    sizes.hidden = !sizes.hidden;
+    drawer.hidden = true;
+    if (!sizes.hidden) renderSizes();
   }
   function applyChords() {
     songEl.classList.toggle('nochords', !showChords);
     chordsBtn.classList.toggle('on', showChords);
     chordsBtn.title = showChords ? 'Masquer les accords' : 'Afficher les accords';
+    if (!sizes.hidden) renderSizes();
   }
   function go(n) {
     if (n < 0 || n >= songs.length) return;
@@ -128,6 +154,7 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
     document.title = s.title + ' · MyLyrics';
   }
   function toggleDrawer() {
+    sizes.hidden = true;
     if (!drawer.hidden) { drawer.hidden = true; return; }
     drawer.replaceChildren(
       h('div', { style: 'padding:4px 12px 8px;color:var(--muted);font-size:13px' }, setlistName),
