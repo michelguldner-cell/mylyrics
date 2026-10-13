@@ -1,9 +1,12 @@
 // Synchronisation Google Drive : OAuth 2.0 implicite par redirection + API REST Drive v3.
-import { getSettings, setSetting, exportData, importData, db } from './db.js';
+import { getSettings, setSetting, exportData, importData } from './db.js';
+import { stamp } from './backup.js';
 
 const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const TOKEN_KEY = 'mylyrics.gtoken';
 const FOLDER = 'MyLyrics';
+const HISTORY_FOLDER = 'Historique';
+const HISTORY_KEEP = 30;
 const FILENAME = 'mylyrics.json';
 const API = 'https://www.googleapis.com/drive/v3';
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3';
@@ -65,13 +68,38 @@ async function api(path, opts = {}, base = API) {
   return res;
 }
 
-async function findOrCreateFolder() {
-  const q = encodeURIComponent(`name='${FOLDER}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+async function findOrCreateFolder(name = FOLDER, parentId = null) {
+  const q = encodeURIComponent(`name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false` + (parentId ? ` and '${parentId}' in parents` : ''));
   const r = await (await api(`/files?q=${q}&fields=files(id)&spaces=drive`)).json();
   if (r.files && r.files.length) return r.files[0].id;
-  const c = await (await api('/files', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: FOLDER, mimeType: 'application/vnd.google-apps.folder' }) })).json();
+  const meta = { name, mimeType: 'application/vnd.google-apps.folder' };
+  if (parentId) meta.parents = [parentId];
+  const c = await (await api('/files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(meta) })).json();
   return c.id;
+}
+
+// Empreinte du contenu : change dès qu'une chanson ou setlist est modifiée.
+function fingerprint(data) {
+  return [...data.songs, ...data.setlists].map((x) => x.id + ':' + (x.updatedAt || 0) + (x.deleted ? 'd' : '')).sort().join('|');
+}
+
+// Copie datée dans MyLyrics/Historique si le contenu a changé depuis la dernière copie ; garde les HISTORY_KEEP plus récentes.
+async function snapshot(folderId, data) {
+  const fp = fingerprint(data);
+  const s = await getSettings();
+  if (s.lastSnapshotFp === fp) return false;
+  const histId = await findOrCreateFolder(HISTORY_FOLDER, folderId);
+  const name = `mylyrics-${stamp()}.json`;
+  const boundary = 'mylyrics' + Date.now();
+  const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ name, parents: [histId] })}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(data)}\r\n--${boundary}--`;
+  await api('/files?uploadType=multipart', { method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${boundary}` }, body }, UPLOAD);
+  await setSetting('lastSnapshotFp', fp);
+  // Élagage
+  const q = encodeURIComponent(`'${histId}' in parents and trashed=false and name contains 'mylyrics-'`);
+  const r = await (await api(`/files?q=${q}&fields=files(id,name)&pageSize=200`)).json();
+  const files = (r.files || []).sort((a, b) => b.name.localeCompare(a.name));
+  for (const f of files.slice(HISTORY_KEEP)) await api(`/files/${f.id}`, { method: 'DELETE' });
+  return true;
 }
 
 async function findFile(folderId) {
@@ -116,7 +144,9 @@ export async function sync() {
   const data = { ...(await exportData()), songs: merged.songs, setlists: merged.setlists };
   await upload(fileId, folderId, data);
   await setSetting('lastSyncAt', Date.now());
-  return { songs: merged.songs.filter((x) => !x.deleted).length, setlists: merged.setlists.filter((x) => !x.deleted).length };
+  let snap = false;
+  try { snap = await snapshot(folderId, data); } catch (e) { console.warn('Historique Drive', e); }
+  return { songs: merged.songs.filter((x) => !x.deleted).length, setlists: merged.setlists.filter((x) => !x.deleted).length, snapshot: snap };
 }
 
 // Tentative silencieuse à l'ouverture (si connecté, en ligne, et dernière sync > 10 min).

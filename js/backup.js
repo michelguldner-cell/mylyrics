@@ -2,11 +2,15 @@
 import { exportData, importData } from './db.js';
 import { download } from './ui.js';
 
+// Horodatage pour les noms de fichiers : 2026-10-13_14-05
+export function stamp(d = new Date()) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}`;
+}
+
 export async function exportBackup() {
   const data = await exportData();
-  const d = new Date();
-  const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  download(`mylyrics-sauvegarde-${stamp}.json`, JSON.stringify(data, null, 1));
+  download(`mylyrics-sauvegarde-${stamp()}.json`, JSON.stringify(data, null, 1));
 }
 
 export function pickBackupFile() {

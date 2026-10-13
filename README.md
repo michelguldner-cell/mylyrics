@@ -57,6 +57,8 @@ Le fichier JSON produit se restaure dans l'app via **Réglages → Restaurer une
 
 Les données sont stockées dans `MyLyrics/mylyrics.json` sur votre Drive. Chaque appareil fusionne ses données avec ce fichier (pour chaque chanson ou setlist, la version la plus récemment modifiée gagne ; une suppression se propage).
 
+À chaque synchronisation qui change quelque chose, une copie datée `mylyrics-AAAA-MM-JJ_HH-MM.json` est déposée dans `MyLyrics/Historique` (les 30 plus récentes sont conservées). Pour revenir en arrière : télécharger la copie voulue depuis Drive, puis Réglages → Restaurer une sauvegarde.
+
 ### Créer le Client ID (une seule fois, gratuit)
 
 1. Aller sur https://console.cloud.google.com/ et créer un projet (ex. « MyLyrics »).
@@ -73,7 +75,7 @@ Ensuite : **Synchroniser maintenant** sur chaque appareil, avant et après vos m
 
 ## Sauvegarde locale
 
-Réglages → **Exporter une sauvegarde (JSON)** télécharge toutes les chansons et setlists dans un fichier que vous pouvez garder n'importe où. **Restaurer** fusionne ce fichier avec les données de l'appareil.
+Réglages → **Exporter une sauvegarde (JSON)** télécharge toutes les chansons et setlists dans un fichier horodaté (`mylyrics-sauvegarde-AAAA-MM-JJ_HH-MM.json`) que vous pouvez garder n'importe où. **Restaurer** fusionne ce fichier avec les données de l'appareil.
 
 ## Développement
 

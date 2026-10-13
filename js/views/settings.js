@@ -29,7 +29,7 @@ export async function mount(ctx) {
   } });
   const syncBtn = h('button', { class: 'btn primary', onclick: async () => {
     syncBtn.disabled = true;
-    try { const r = await sync(); toast(`Synchronisé : ${r.songs} chansons, ${r.setlists} setlists`); }
+    try { const r = await sync(); toast(`Synchronisé : ${r.songs} chansons, ${r.setlists} setlists` + (r.snapshot ? ' · copie datée ajoutée à l’historique' : '')); }
     catch (e) { toast('Sync impossible : ' + e.message, 4000); }
     syncBtn.disabled = false; refreshDrive();
   } }, 'Synchroniser maintenant');
@@ -61,7 +61,7 @@ export async function mount(ctx) {
     h('div', { class: 'card stack' },
       h('label', {}, 'Client ID OAuth (voir README)'), clientId,
       status, connectBtn, syncBtn,
-      h('div', { class: 'hint' }, 'Le fichier « MyLyrics/mylyrics.json » dans votre Drive contient toutes les chansons et setlists. Synchronisez chaque appareil avant et après vos modifications.')),
+      h('div', { class: 'hint' }, 'Le fichier « MyLyrics/mylyrics.json » dans votre Drive contient toutes les chansons et setlists. Synchronisez chaque appareil avant et après vos modifications. À chaque synchronisation qui change quelque chose, une copie datée est déposée dans « MyLyrics/Historique » (30 dernières conservées) ; ces copies se restaurent avec « Restaurer une sauvegarde ».')),
     h('h2', {}, 'Sauvegarde locale'),
     h('div', { class: 'card stack' }, exportBtn, restoreBtn,
       h('div', { class: 'hint' }, 'La restauration fusionne avec les données existantes (la version la plus récente de chaque chanson gagne).')),
