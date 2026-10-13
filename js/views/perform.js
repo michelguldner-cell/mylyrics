@@ -43,7 +43,13 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
   const next = h('button', { class: 'icon-btn nav', 'aria-label': 'Suivante', onclick: () => go(i + 1) }, '›');
   const listBtn = h('button', { class: 'icon-btn', 'aria-label': 'Liste', onclick: toggleDrawer }, '☰');
   const quit = h('button', { class: 'icon-btn', 'aria-label': 'Quitter', onclick: () => ctx.navigate(backHash) }, '✕');
-  const content = h('div', { class: 'content', onclick: () => { if (!drawer.hidden) drawer.hidden = true; } });
+  const canFs = !!document.documentElement.requestFullscreen;
+  const fsBtn = h('button', { class: 'icon-btn', 'aria-label': 'Plein écran', onclick: toggleFullscreen }, '⛶');
+  // Un tap sur le texte masque/affiche la barre (mode immersif)
+  const content = h('div', { class: 'content', onclick: () => {
+    if (!drawer.hidden) { drawer.hidden = true; return; }
+    root.classList.toggle('immersive');
+  } });
   const songEl = h('div', { class: 'song' });
   const meta = h('div', { class: 'meta' });
   content.append(meta, songEl);
@@ -51,7 +57,7 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
   const edgeL = h('div', { class: 'edge l', onclick: () => go(i - 1) });
   const edgeR = h('div', { class: 'edge r', onclick: () => go(i + 1) });
   const root = h('div', { class: 'perform' },
-    h('div', { class: 'bar' }, quit, ttl, songs.length > 1 ? prev : null, songs.length > 1 ? next : null, chordsBtn, minus, plus, songs.length > 1 ? listBtn : null),
+    h('div', { class: 'bar' }, quit, ttl, songs.length > 1 ? prev : null, songs.length > 1 ? next : null, chordsBtn, minus, plus, canFs ? fsBtn : null, songs.length > 1 ? listBtn : null),
     content, songs.length > 1 ? edgeL : null, songs.length > 1 ? edgeR : null, drawer);
   ctx.el().append(root);
 
@@ -71,12 +77,18 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
     else if (e.key === '+') setSize(fontSize + 2);
     else if (e.key === '-') setSize(fontSize - 2);
     else if (e.key.toLowerCase() === 'c') chordsBtn.click();
+    else if (e.key.toLowerCase() === 'f') toggleFullscreen();
+    else if (e.key.toLowerCase() === 'h') root.classList.toggle('immersive');
   };
   document.addEventListener('keydown', onKey);
   onVisible = () => { if (document.visibilityState === 'visible') requestWakeLock(); };
   document.addEventListener('visibilitychange', onVisible);
   requestWakeLock();
 
+  function toggleFullscreen() {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else document.documentElement.requestFullscreen().catch(() => {});
+  }
   function setSize(px) {
     fontSize = Math.min(60, Math.max(12, px));
     document.documentElement.style.setProperty('--song-size', fontSize + 'px');
@@ -116,10 +128,15 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
   }
   setSize(fontSize);
   show();
+  if (!sessionStorage.getItem('mylyrics.hintImmersive')) {
+    sessionStorage.setItem('mylyrics.hintImmersive', '1');
+    toast('Touchez le texte pour masquer ou afficher la barre', 3500);
+  }
 }
 
 export function unmount() {
   releaseWakeLock();
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   if (onKey) document.removeEventListener('keydown', onKey);
   if (onVisible) document.removeEventListener('visibilitychange', onVisible);
   onKey = onVisible = null;

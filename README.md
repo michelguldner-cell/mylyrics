@@ -48,6 +48,8 @@ Le fichier JSON produit se restaure dans l'app via **Réglages → Restaurer une
 
 - Écran noir, texte blanc, sections en jaune, accords en cyan.
 - Navigation : flèches ‹ › , balayage horizontal, tap sur les bords gauche/droit, touches ← → / Page précédente-suivante (compatible pédale Bluetooth type PageFlip / AirTurn).
+- **Un tap sur le texte masque la barre d'outils** : seules les paroles restent à l'écran. Un nouveau tap la fait revenir (touche `H` au clavier).
+- `⛶` : plein écran du navigateur sur ordinateur et Android (touche `F`). Sur iPad/iPhone, l'app installée sur l'écran d'accueil est déjà en plein écran.
 - `A−` / `A+` : taille du texte (mémorisée). `♯` : accords on/off (touche `C` au clavier). `☰` : liste des chansons de la setlist. `✕` ou `Échap` : quitter.
 - L'écran reste allumé pendant le mode concert (si le navigateur le permet).
 
