@@ -16,6 +16,7 @@ export async function mount(ctx) {
       h('button', { class: 'btn', onclick: () => set(s[key] - 2) }, '−'), val, h('button', { class: 'btn', onclick: () => set(s[key] + 2) }, '+'));
   }
   const chordsChk = h('input', { type: 'checkbox', checked: s.showChords, onchange: (e) => setSetting('showChords', e.target.checked) });
+  const metroChk = h('input', { type: 'checkbox', checked: s.showMetronome, onchange: (e) => setSetting('showMetronome', e.target.checked) });
 
   // --- Google Drive ---
   const clientId = h('input', { type: 'text', value: s.driveClientId || '', placeholder: '1234567890-xxxx.apps.googleusercontent.com', autocapitalize: 'off', spellcheck: 'false',
@@ -56,7 +57,9 @@ export async function mount(ctx) {
       h('label', {}, 'Tailles par défaut (mode concert)'),
       sizeRow('fontSize', 'Texte'), sizeRow('sectionSize', 'Titres de section'), sizeRow('chordSize', 'Accords'),
       h('div', { class: 'hint' }, 'En mode concert, le bouton « Aa » règle et mémorise ces trois tailles pour la chanson affichée. Les valeurs ci-dessus servent aux chansons sans réglage propre.'),
-      h('label', { class: 'row', style: 'color:var(--fg);font-size:15px' }, chordsChk, h('span', {}, 'Afficher les accords par défaut'))),
+      h('label', { class: 'row', style: 'color:var(--fg);font-size:15px' }, chordsChk, h('span', {}, 'Afficher les accords par défaut')),
+      h('label', { class: 'row', style: 'color:var(--fg);font-size:15px' }, metroChk, h('span', {}, 'Métronome en mode concert')),
+      h('div', { class: 'hint' }, 'Un badge en haut à droite des paroles bat le tempo de la chanson (champ Tempo de la chanson, ou ligne « Tempo: 120 » dans le texte). Un tap sur le badge active ou coupe le clic sonore.')),
     h('h2', {}, 'Google Drive'),
     h('div', { class: 'card stack' },
       h('label', {}, 'Client ID OAuth (pré-rempli, à ne changer que si vous créez votre propre projet Google Cloud)'), clientId,

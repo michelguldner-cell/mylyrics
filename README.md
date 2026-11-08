@@ -51,6 +51,7 @@ Le fichier JSON produit se restaure dans l'app via **Réglages → Restaurer une
 - **Un tap sur le texte masque la barre d'outils** : seules les paroles restent à l'écran. Un nouveau tap la fait revenir (touche `H` au clavier).
 - `⛶` : plein écran du navigateur sur ordinateur et Android (touche `F`). Sur iPad/iPhone, l'app installée sur l'écran d'accueil est déjà en plein écran.
 - `Aa` : panneau des tailles, **texte, titres de section et accords réglables indépendamment**, mémorisées par chanson (les valeurs des Réglages servent de défaut ; l'éditeur permet de revenir au défaut). Le panneau contient aussi l'interrupteur des accords. `♯` : accords on/off (touche `C` au clavier). `☰` : liste des chansons de la setlist. `✕` ou `Échap` : quitter.
+- **Métronome** : un badge en haut à droite des paroles bat le tempo de la chanson (point qui pulse, temps fort en jaune). Un tap sur le badge active ou coupe le clic sonore (touche `M`). Le tempo vient du champ **Tempo** de l'éditeur de chanson, ou à défaut d'une ligne `Tempo: 120` dans le texte ; si la chanson n'en a pas, un tap sur le badge permet de le saisir. Le badge se désactive dans Réglages → « Métronome en mode concert ».
 - L'écran reste allumé pendant le mode concert (si le navigateur le permet).
 
 ## Synchronisation Google Drive

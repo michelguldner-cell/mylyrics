@@ -66,9 +66,10 @@ body.fullscreen .view { padding: 0; }
 .btn:disabled { opacity: .5; cursor: default; }
 .row { display: flex; gap: 8px; align-items: center; }
 .row > * { flex: 1; }
+.row > input.tempo { flex: 0 0 92px; }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 
-input[type=text], input[type=search], textarea, select {
+input[type=text], input[type=search], input[type=number], textarea, select {
   width: 100%; background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
   padding: 10px 12px; min-height: 44px; color: var(--fg); outline: none;
 }
@@ -145,6 +146,24 @@ h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spa
 .perform .sizes .btn { min-height: 36px; padding: 6px 12px; }
 .perform .sizes .btn.sq { width: 40px; padding: 0; }
 .perform .sizes .btn.on { border-color: var(--accent); color: var(--accent); }
+
+/* Métronome (mode concert) */
+.perform .metro {
+  position: absolute; right: 10px; top: calc(var(--safe-t) + 44px + 10px); z-index: 4;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(20,20,20,.85); border: 1px solid var(--border); border-radius: 999px;
+  padding: 4px 12px 4px 8px; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; line-height: 1;
+}
+.perform.immersive .metro { top: calc(var(--safe-t) + 10px); }
+.perform .metro.on { color: var(--fg); border-color: var(--accent); }
+.perform .metro.none { opacity: .6; }
+.perform .metro .dot { width: 12px; height: 12px; border-radius: 50%; background: #333; flex: none; }
+.perform .metro .dot.beat { animation: metro-beat .22s ease-out; }
+.perform .metro .dot.beat.strong { animation-name: metro-beat-strong; }
+@keyframes metro-beat { 0% { background: var(--accent); transform: scale(1.5); } 100% { background: #333; transform: scale(1); } }
+@keyframes metro-beat-strong { 0% { background: var(--section); transform: scale(1.8); } 100% { background: #333; transform: scale(1); } }
+.perform .content { position: relative; }
+.perform .content .meta { padding-right: 90px; }
 
 /* Toast */
 .toast {

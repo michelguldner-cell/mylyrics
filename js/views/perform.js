@@ -1,11 +1,13 @@
-// Mode concert : plein écran noir, navigation entre chansons, accords on/off, taille de police, wake lock.
-import { h, toast } from '../ui.js';
+// Mode concert : plein écran noir, navigation entre chansons, accords on/off, taille de police, métronome, wake lock.
+import { h, toast, promptDialog } from '../ui.js';
 import { getSong, getSetlist, listSongs, getSettings, setSetting, saveSong } from '../db.js';
 import { renderSongHTML } from '../render.js';
+import { songTempo, createMetronome } from '../metronome.js';
 
 let wakeLock = null;
 let onKey = null;
 let onVisible = null;
+let metro = null;
 
 async function requestWakeLock() {
   try {
@@ -51,6 +53,15 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
     if (!sizes.hidden) { sizes.hidden = true; return; }
     root.classList.toggle('immersive');
   } });
+  // Métronome (badge en haut à droite des paroles) : pulsation visuelle, tap = clic sonore on/off
+  const metroDot = h('span', { class: 'dot' });
+  const metroVal = h('span', { class: 'val' });
+  const metroBtn = h('button', { class: 'metro', hidden: !settings.showMetronome, 'aria-label': 'Métronome', onclick: toggleMetroSound }, metroDot, '♩', metroVal);
+  metro = createMetronome({ onBeat: (b) => {
+    metroDot.classList.remove('beat', 'strong');
+    void metroDot.offsetWidth; // relance l'animation
+    metroDot.classList.add('beat'); if (b === 0) metroDot.classList.add('strong');
+  } });
   const songEl = h('div', { class: 'song' });
   const meta = h('div', { class: 'meta' });
   content.append(meta, songEl);
@@ -59,7 +70,7 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
   const edgeR = h('div', { class: 'edge r', onclick: () => go(i + 1) });
   const root = h('div', { class: 'perform' },
     h('div', { class: 'bar' }, quit, ttl, songs.length > 1 ? prev : null, songs.length > 1 ? next : null, chordsBtn, sizesBtn, canFs ? fsBtn : null, songs.length > 1 ? listBtn : null),
-    content, songs.length > 1 ? edgeL : null, songs.length > 1 ? edgeR : null, drawer, sizes);
+    content, songs.length > 1 ? edgeL : null, songs.length > 1 ? edgeR : null, drawer, sizes, metroBtn);
   ctx.el().append(root);
 
   // Balayage horizontal
@@ -80,12 +91,34 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
     else if (e.key.toLowerCase() === 'c') chordsBtn.click();
     else if (e.key.toLowerCase() === 'f') toggleFullscreen();
     else if (e.key.toLowerCase() === 'h') root.classList.toggle('immersive');
+    else if (e.key.toLowerCase() === 'm' && !metroBtn.hidden) toggleMetroSound();
   };
   document.addEventListener('keydown', onKey);
-  onVisible = () => { if (document.visibilityState === 'visible') requestWakeLock(); };
+  onVisible = () => { if (document.visibilityState === 'visible') { requestWakeLock(); metro.start(); } else metro.stop(); };
   document.addEventListener('visibilitychange', onVisible);
   requestWakeLock();
 
+  async function toggleMetroSound() {
+    const s = songs[i];
+    if (!songTempo(s)) {
+      const r = await promptDialog('Tempo de la chanson (BPM) :', '120');
+      if (r === null) return;
+      const t = parseInt(r, 10);
+      if (!(t >= 20 && t <= 300)) { toast('Tempo entre 20 et 300'); return; }
+      s.tempo = t; await saveSong(s); applyMetro(); return;
+    }
+    metro.setSound(!metro.sound);
+    metroBtn.classList.toggle('on', metro.sound);
+    metroBtn.title = metro.sound ? 'Couper le clic' : 'Clic sonore';
+  }
+  function applyMetro() {
+    const t = songTempo(songs[i]);
+    metro.setSound(false); metroBtn.classList.remove('on'); metroBtn.title = 'Clic sonore';
+    metro.setTempo(t);
+    metroVal.textContent = t || '–';
+    metroBtn.classList.toggle('none', !t);
+    metroDot.classList.remove('beat', 'strong');
+  }
   function toggleFullscreen() {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     else document.documentElement.requestFullscreen().catch(() => {});
@@ -143,12 +176,13 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
   }
   function show() {
     const s = songs[i];
-    ttl.replaceChildren(s.title, songs.length > 1 ? h('small', {}, `${i + 1}/${songs.length}`) : null);
+    ttl.replaceChildren(s.title, ...(songs.length > 1 ? [h('small', {}, `${i + 1}/${songs.length}`)] : []));
     meta.textContent = s.artist || '';
     meta.hidden = !s.artist;
     songEl.innerHTML = renderSongHTML(s.body);
     applySize();
     applyChords();
+    applyMetro();
     content.scrollTop = 0;
     prev.disabled = i === 0; next.disabled = i === songs.length - 1;
     document.title = s.title + ' · MyLyrics';
@@ -172,6 +206,7 @@ export async function mount(ctx, { songId, setlistId, index = 0 }) {
 }
 
 export function unmount() {
+  if (metro) { metro.destroy(); metro = null; }
   releaseWakeLock();
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   if (onKey) document.removeEventListener('keydown', onKey);

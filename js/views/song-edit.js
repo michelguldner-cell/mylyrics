@@ -1,6 +1,7 @@
 import { h, toast, confirmDialog } from '../ui.js';
 import { getSong, saveSong, deleteSong, getSettings } from '../db.js';
 import { renderSongHTML } from '../render.js';
+import { songTempo } from '../metronome.js';
 
 export async function mount(ctx, { id }) {
   const song = await getSong(id);
@@ -11,6 +12,7 @@ export async function mount(ctx, { id }) {
 
   const title = h('input', { type: 'text', value: song.title, placeholder: 'Titre' });
   const artist = h('input', { type: 'text', value: song.artist || '', placeholder: 'Artiste' });
+  const tempo = h('input', { type: 'number', inputmode: 'numeric', min: 20, max: 300, value: song.tempo || '', placeholder: 'Tempo', 'aria-label': 'Tempo (BPM)', class: 'tempo' });
   const body = h('textarea', { placeholder: 'Couplet 1:\n[G]Paroles avec [D]accords…', spellcheck: 'false', autocapitalize: 'off' });
   body.value = song.body || '';
   const preview = h('div', { class: 'song card', hidden: true });
@@ -18,12 +20,14 @@ export async function mount(ctx, { id }) {
 
   let dirty = false;
   const markDirty = () => { dirty = true; };
-  [title, artist, body].forEach((el) => el.addEventListener('input', markDirty));
+  [title, artist, tempo, body].forEach((el) => el.addEventListener('input', markDirty));
 
   async function save(silent) {
     song.title = title.value.trim() || 'Sans titre';
     song.artist = artist.value.trim();
     song.body = body.value;
+    const t = parseInt(tempo.value, 10);
+    if (t >= 20 && t <= 300) song.tempo = t; else delete song.tempo;
     await saveSong(song);
     dirty = false;
     ctx.setTitle(song.title);
@@ -40,9 +44,9 @@ export async function mount(ctx, { id }) {
   ctx.setActions(previewBtn, h('button', { class: 'icon-btn', 'aria-label': 'Jouer', onclick: async () => { if (dirty) await save(true); ctx.navigate('#/play/song/' + song.id); } }, '▶'), saveBtn);
 
   const editor = h('div', { class: 'stack' },
-    h('div', { class: 'row' }, title, artist),
+    h('div', { class: 'row' }, title, artist, tempo),
     body,
-    h('div', { class: 'hint', html: 'Format : une ligne finissant par <code>:</code> = titre de section (<code>Refrain:</code>). Accords entre crochets : <code>[G]Je chante [D]ici</code>. Une ligne d’accords seuls (<code>G D Em C</code>) est reconnue aussi.' }),
+    h('div', { class: 'hint', html: 'Format : une ligne finissant par <code>:</code> = titre de section (<code>Refrain:</code>). Accords entre crochets : <code>[G]Je chante [D]ici</code>. Une ligne d’accords seuls (<code>G D Em C</code>) est reconnue aussi. Le tempo (BPM) sert au métronome du mode concert ; à défaut, une ligne <code>Tempo: 120</code> dans le texte est utilisée.' }),
     (song.fontSize || song.sectionSize || song.chordSize) ? h('button', { class: 'btn block', onclick: async (e) => { delete song.fontSize; delete song.sectionSize; delete song.chordSize; await saveSong(song); e.target.remove(); toast('Tailles par défaut rétablies'); } },
       `Tailles propres à cette chanson (texte ${song.fontSize || '–'}, sections ${song.sectionSize || '–'}, accords ${song.chordSize || '–'}) — rétablir les valeurs par défaut`) : null,
     h('button', { class: 'btn danger block', onclick: async () => {
