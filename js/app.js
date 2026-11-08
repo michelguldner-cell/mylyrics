@@ -10,7 +10,7 @@ import * as setlistEdit from './views/setlist-edit.js';
 import * as perform from './views/perform.js';
 import * as settings from './views/settings.js';
 
-export const APP_VERSION = '1.0.9';
+export const APP_VERSION = '1.0.10';
 
 const routes = [
   { re: /^\/?$/, view: library, tab: 'library' },

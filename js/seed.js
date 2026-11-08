@@ -3,7 +3,7 @@
 import { db, listSongs, saveSong, getSettings, setSetting } from './db.js';
 import { songTempo } from './metronome.js';
 
-export const SEED_VERSION = 1;
+export const SEED_VERSION = 2;
 
 // Tempos (BPM) des enregistrements originaux. Correspondance par titre (normalisé) + artiste.
 export const KNOWN_TEMPOS = [
@@ -48,108 +48,57 @@ export const KNOWN_TEMPOS = [
   { title: 'Wonderwall', artist: 'Oasis', bpm: 87 },
 ];
 
-// Nouvelles chansons (structure et accords ; paroles à coller par l'utilisateur).
+// Nouvelles chansons (structure vide ; paroles à coller par l'utilisateur). « rev » : la fiche est remplacée
+// sur les appareils où elle existe déjà, tant que l'utilisateur n'y a rien ajouté (texte encore égal au gabarit précédent).
 export const NEW_SONGS = [
-  { id: 'seed-about-a-girl', title: 'About a Girl', artist: 'Nirvana', tempo: 121, body: `Key: Em
-Tempo: 121
-{c: Version MTV Unplugged : guitares accordées un demi-ton plus bas, sans capo (studio Bleach : accordage standard, 132 bpm). Collez les paroles sous les lignes d'accords.}
-
-Intro:
-Em G | Em G | Em G | Em G
+  { id: 'seed-about-a-girl', rev: 2, title: 'About a Girl', artist: 'Nirvana', tempo: 121, body: `Intro:
 
 Couplet 1:
-Em G | Em G
-Em G | Em G
-Em G | Em G
-Em G | Em G
-{c: paroles du couplet 1 à coller}
+{c: coller ici les paroles du couplet 1}
 
 Refrain:
-C# F# | C# F#
-C# F# | Em A | C
-Em G | Em G
-{c: paroles du refrain à coller}
+{c: coller ici les paroles du refrain}
 
 Couplet 2:
-Em G | Em G
-Em G | Em G
-Em G | Em G
-Em G | Em G
-{c: paroles du couplet 2 à coller}
+{c: coller ici les paroles du couplet 2}
 
 Refrain:
-C# F# | C# F#
-C# F# | Em A | C
-Em G | Em G
 
 Solo:
-Em G | Em G | Em G | Em G
-Em G | Em G | Em G | Em G
-C# F# | C# F# | Em A | C
-C# F# | C# F# | Em A | C
 
 Couplet 3:
-Em G | Em G
-Em G | Em G
-Em G | Em G
-Em G | Em G
-{c: paroles du couplet 3 à coller}
+{c: coller ici les paroles du couplet 3}
 
 Refrain:
-C# F# | C# F#
-C# F# | C# F#
-Em A | C
-Em G | Em G
 
 Fin:
-C# F# | C# F# | Em A | C | Em A | C
-Em G | Em G | Em G | Em G | Em
 ` },
-  { id: 'seed-state-of-love-and-trust', title: 'State of Love and Trust', artist: 'Pearl Jam', tempo: 165, body: `Key: Am
-Tempo: 165
-{c: Accordage standard, sans capo. Le riff alterne F et A ; le refrain monte F A C G / A B C D. Collez les paroles sous les lignes d'accords.}
-
-Intro:
-F5 A5 | F5 A5 | F5 A5 | F5 A5 | F5 A5 | F5 A5
+  { id: 'seed-state-of-love-and-trust', rev: 2, title: 'State of Love and Trust', artist: 'Pearl Jam', tempo: 165, body: `Intro:
 
 Couplet 1:
-F5 A5 | F5 A5 | F5 A5 | F5 A5
-F5 A5 | F5 A5 | F5 A5 | F5 A5
-{c: paroles du couplet 1 à coller}
+{c: coller ici les paroles du couplet 1}
 
 Pré-refrain:
-F5 A5 | C5 G5 | A5 B5 | C5 D5
+{c: coller ici les paroles du pré-refrain}
 
 Refrain:
-F5 A5 C5 G5 | A5 B5 C5 D5
-{c: paroles du refrain à coller}
+{c: coller ici les paroles du refrain}
 
 Couplet 2:
-F5 A5 | F5 A5 | F5 A5 | F5 A5
-F5 A5 | F5 A5 | F5 A5 | F5 A5
-{c: paroles du couplet 2 à coller}
+{c: coller ici les paroles du couplet 2}
 
 Refrain:
-F5 A5 C5 G5 | A5 B5 C5 D5
-F5 A5 C5 G5 | A5 G5 F5 D5
 
 Pont:
-{c: basse seule sur le riff F → A, 4 mesures}
-F5 A5 | F5 A5 | F5 A5 | F5 A5
 
 Solo:
-F5 A5 | F5 A5 | F5 A5 | F5 A5 | F5 A5 | F5 A5
 
 Couplet 3:
-F5 A5 | C5 G5 | A5 B5 | C5 D5
-{c: paroles du couplet 3 à coller}
+{c: coller ici les paroles du couplet 3}
 
 Refrain:
-F5 A5 C5 G5 | A5 B5 C5 D5
-F5 A5 C5 G5 | A5 G5 F5 D5
 
 Fin:
-F5 A5 | F5 A5 | F5 A5 | F5 A5
 ` },
 ];
 
@@ -188,9 +137,11 @@ export async function applySeed() {
   const all = await db.getAll('songs');
   const ids = new Set(all.map((x) => x.id));
   for (const ns of NEW_SONGS) {
-    if (ids.has(ns.id)) continue;
-    await saveSong({ ...ns, deleted: false });
-    n++;
+    const cur = all.find((x) => x.id === ns.id);
+    if (!cur) { await saveSong({ ...ns, deleted: false }); n++; continue; }
+    // Fiche d'une version précédente, jamais complétée (gabarit rev 1 avec accords) : on la remplace.
+    const untouched = (cur.rev || 1) < ns.rev && /paroles du couplet 1 à coller/.test(cur.body || '');
+    if (untouched && !cur.deleted) { await saveSong({ ...cur, title: ns.title, artist: ns.artist, body: ns.body, rev: ns.rev }); n++; }
   }
   await setSetting('seedVersion', SEED_VERSION);
   return n;
