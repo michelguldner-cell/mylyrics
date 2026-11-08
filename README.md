@@ -53,6 +53,7 @@ Le fichier JSON produit se restaure dans l'app via **Réglages → Restaurer une
 - `Aa` : panneau des tailles, **texte, titres de section et accords réglables indépendamment**, mémorisées par chanson (les valeurs des Réglages servent de défaut ; l'éditeur permet de revenir au défaut). Le panneau contient aussi l'interrupteur des accords. `♯` : accords on/off (touche `C` au clavier). `☰` : liste des chansons de la setlist. `✕` ou `Échap` : quitter.
 - **Métronome** : un badge en haut à droite des paroles bat le tempo de la chanson (point qui pulse, temps fort en jaune). Un tap sur le badge active ou coupe le clic sonore (touche `M`). Le tempo vient du champ **Tempo** de l'éditeur de chanson, ou à défaut d'une ligne `Tempo: 120` dans le texte ; si la chanson n'en a pas, un tap sur le badge permet de le saisir. Le badge se désactive dans Réglages → « Métronome en mode concert ».
 - L'écran reste allumé pendant le mode concert (si le navigateur le permet).
+- Au premier lancement d'une version, l'app renseigne automatiquement le tempo des chansons connues de la bibliothèque qui n'en ont pas encore (table embarquée dans `js/seed.js`, correspondance par titre et artiste), puis synchronise vers Drive si connecté. Un tempo saisi à la main n'est jamais écrasé.
 
 ## Synchronisation Google Drive
 

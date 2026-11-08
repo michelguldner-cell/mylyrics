@@ -1,4 +1,4 @@
-// Métronome : tempo d'une chanson (champ « tempo » ou ligne « Tempo: 120 » / {tempo:120} / « BPM: 120 » dans le texte),
+// Métronome : tempo d'une chanson (champ « tempo », « 120bpm » dans le titre, ou ligne « Tempo: 120 » / {tempo:120} / « BPM: 120 » dans le texte),
 // pulsation visuelle et clic sonore (Web Audio).
 
 // Tempo en BPM d'une chanson, ou null.
@@ -6,6 +6,8 @@ export function songTempo(song) {
   if (!song) return null;
   const t = Number(song.tempo);
   if (t >= 20 && t <= 300) return Math.round(t);
+  const tm = String(song.title || '').match(/(\d{2,3})\s*bpm/i); // « Wonderwall 175bpm »
+  if (tm && +tm[1] >= 20 && +tm[1] <= 300) return +tm[1];
   const m = String(song.body || '').match(/^\s*(?:\{\s*)?(?:tempo|bpm)\s*:\s*(\d{2,3})(?:\s*(?:bpm)?\s*\}?)\s*$/im);
   if (m) { const v = +m[1]; if (v >= 20 && v <= 300) return v; }
   return null;

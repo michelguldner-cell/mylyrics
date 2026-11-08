@@ -1,6 +1,6 @@
 // Service worker MyLyrics : cache de l'app shell, stratégie cache-first.
 // Incrémenter VERSION à chaque déploiement pour invalider le cache.
-const VERSION = '1.0.8';
+const VERSION = '1.0.9';
 const CACHE = `mylyrics-${VERSION}`;
 const SHELL = [
   './',
@@ -12,6 +12,7 @@ const SHELL = [
   './js/parser.js',
   './js/render.js',
   './js/metronome.js',
+  './js/seed.js',
   './js/importer.js',
   './js/backup.js',
   './js/drive.js',

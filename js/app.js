@@ -1,7 +1,8 @@
 // Point d'entrée : routeur hash + enregistrement du service worker.
-import { $, $$ } from './ui.js';
+import { $, $$, toast } from './ui.js';
 import { getSettings } from './db.js';
-import { handleOAuthReturn, autoSync } from './drive.js';
+import { handleOAuthReturn, autoSync, isConnected, sync } from './drive.js';
+import { applySeed } from './seed.js';
 import * as library from './views/library.js';
 import * as songEdit from './views/song-edit.js';
 import * as setlists from './views/setlists.js';
@@ -9,7 +10,7 @@ import * as setlistEdit from './views/setlist-edit.js';
 import * as perform from './views/perform.js';
 import * as settings from './views/settings.js';
 
-export const APP_VERSION = '1.0.8';
+export const APP_VERSION = '1.0.9';
 
 const routes = [
   { re: /^\/?$/, view: library, tab: 'library' },
@@ -65,7 +66,16 @@ async function init() {
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW', e));
   }
-  autoSync().catch((e) => console.warn('sync auto', e));
+  // Sync d'abord (données fraîches), puis données embarquées (tempos…), puis renvoi vers Drive si besoin.
+  try { await autoSync(); } catch (e) { console.warn('sync auto', e); }
+  try {
+    const n = await applySeed();
+    if (n) {
+      toast(`${n} chanson(s) mise(s) à jour (tempos)`);
+      if (navigator.onLine && isConnected()) await sync();
+      if (location.hash === '' || location.hash === '#/') route();
+    }
+  } catch (e) { console.warn('seed', e); }
 }
 
 init();
